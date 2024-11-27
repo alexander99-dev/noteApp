@@ -32,6 +32,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
 
 data class Note(
     val id: Int,
@@ -118,6 +119,12 @@ fun AddNoteScreen(navController: NavController, todoList: MutableList<Note>) {
     var title by remember { mutableStateOf("") }
     var subtitle by remember { mutableStateOf("") }
 
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+
+
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -134,7 +141,8 @@ fun AddNoteScreen(navController: NavController, todoList: MutableList<Note>) {
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -157,8 +165,38 @@ fun AddNoteScreen(navController: NavController, todoList: MutableList<Note>) {
             Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = {
                 if (title.isNotBlank() && subtitle.isNotBlank()) {
-                    todoList.add(Note(id = todoList.size, title = title, subtitle = subtitle))
-                    navController.popBackStack()
+
+                    if(title.length <= 3){
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                "title must be longer than 3 letter",
+                                actionLabel = "OK",
+                                duration = SnackbarDuration.Short
+                            )}}
+
+                    if(title.length >= 50){
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                "title must be shorter than 50 letters",
+                                actionLabel = "OK",
+                                duration = SnackbarDuration.Short
+                            )}}
+
+
+                    if(subtitle.length >= 120 ){
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                "text should not be longer than 120 letters",
+                                actionLabel = "OK",
+                                duration = SnackbarDuration.Short
+                            )}}
+
+                    //Go back if the requirements are met
+                    if(title.length > 3 && title.length < 50 && subtitle.length < 120){
+                        todoList.add(Note(id = todoList.size, title = title, subtitle = subtitle))
+                        navController.popBackStack()
+                    }
+
                 }
             }) {
                 Text("Add Todo")
@@ -171,21 +209,27 @@ fun AddNoteScreen(navController: NavController, todoList: MutableList<Note>) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditNoteScreen(navController: NavController, todoItem: Note) {
-    var title by remember { mutableStateOf(todoItem.title) }
-    var subtitle by remember { mutableStateOf(todoItem.subtitle) }
+fun EditNoteScreen(navController: NavController, note: Note) {
+    var title by remember { mutableStateOf(note.title) }
+    var subtitle by remember { mutableStateOf(note.subtitle) }
+
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Edit Todo") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = {
 
+                        navController.popBackStack()
+                    }) {
                     }
-                }
+                },
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -201,19 +245,45 @@ fun EditNoteScreen(navController: NavController, todoItem: Note) {
             )
             Spacer(modifier = Modifier.height(16.dp))
             TextField(
-                value = subtitle,
+                value = title,
                 onValueChange = { subtitle = it },
                 label = { Text("Edit text") }
             )
             Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = {
                 if (title.isNotBlank() && subtitle.isNotBlank()) {
-                    todoItem.title = title
-                    todoItem.subtitle = subtitle
-                    navController.popBackStack()
+
+                    if(title.length <= 3){
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                "title must be longer than 3 letter",
+                                actionLabel = "OK",
+                                duration = SnackbarDuration.Short
+                            )}
+                    }else{
+                        note.title = title
+                    }
+
+
+                    if(subtitle.length >= 120 ){
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                "text should not be longer than 120 letters",
+                                actionLabel = "OK",
+                                duration = SnackbarDuration.Short
+                            )}
+                    }else{
+                        note.subtitle = subtitle
+                    }
+
+                    //Go back if the requirements are met
+                    if(title.length > 3 && subtitle.length < 120){
+                        navController.popBackStack()
+                    }
+
                 }
             }) {
-                Text("Save Todo")
+                Text("Save changes to the note")
             }
         }
     }
