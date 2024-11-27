@@ -128,7 +128,7 @@ fun AddNoteScreen(navController: NavController, todoList: MutableList<Note>) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Add Todo") },
+                title = { Text("Add Note") },
                 navigationIcon = {
                     IconButton(
                         onClick = {
@@ -154,17 +154,16 @@ fun AddNoteScreen(navController: NavController, todoList: MutableList<Note>) {
             TextField(
                 value = title,
                 onValueChange = { title = it },
-                label = { Text("Todo") }
+                label = { Text("Title for note") }
             )
             Spacer(modifier = Modifier.height(16.dp))
             TextField(
                 value = subtitle,
                 onValueChange = { subtitle = it },
-                label = { Text("Details") }
+                label = { Text("Text for note") }
             )
             Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = {
-                if (title.isNotBlank() && subtitle.isNotBlank()) {
 
                     if(title.length <= 3){
                         scope.launch {
@@ -182,7 +181,6 @@ fun AddNoteScreen(navController: NavController, todoList: MutableList<Note>) {
                                 duration = SnackbarDuration.Short
                             )}}
 
-
                     if(subtitle.length >= 120 ){
                         scope.launch {
                             snackbarHostState.showSnackbar(
@@ -196,10 +194,8 @@ fun AddNoteScreen(navController: NavController, todoList: MutableList<Note>) {
                         todoList.add(Note(id = todoList.size, title = title, subtitle = subtitle))
                         navController.popBackStack()
                     }
-
-                }
             }) {
-                Text("Add Todo")
+                Text("Add note")
             }
         }
     }
@@ -219,7 +215,7 @@ fun EditNoteScreen(navController: NavController, note: Note) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Edit Todo") },
+                title = { Text("Edit Note") },
                 navigationIcon = {
                     IconButton(onClick = {
 
@@ -241,29 +237,34 @@ fun EditNoteScreen(navController: NavController, note: Note) {
             TextField(
                 value = title,
                 onValueChange = { title = it },
-                label = { Text("Title For the Note") }
+                label = { Text("Edit title") }
             )
             Spacer(modifier = Modifier.height(16.dp))
             TextField(
-                value = title,
+                value = subtitle,
                 onValueChange = { subtitle = it },
                 label = { Text("Edit text") }
             )
             Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = {
-                if (title.isNotBlank() && subtitle.isNotBlank()) {
 
-                    if(title.length <= 3){
+                    if(title.length <= 3  || title.length >= 50){
+                        if(title.length <= 3){
                         scope.launch {
                             snackbarHostState.showSnackbar(
-                                "title must be longer than 3 letter",
+                                "title must be longer than 3 letters",
                                 actionLabel = "OK",
                                 duration = SnackbarDuration.Short
-                            )}
+                            )}}else{
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        "title must be shorter than 50 letters",
+                                        actionLabel = "OK",
+                                        duration = SnackbarDuration.Short
+                                    )}}
                     }else{
                         note.title = title
                     }
-
 
                     if(subtitle.length >= 120 ){
                         scope.launch {
@@ -271,19 +272,16 @@ fun EditNoteScreen(navController: NavController, note: Note) {
                                 "text should not be longer than 120 letters",
                                 actionLabel = "OK",
                                 duration = SnackbarDuration.Short
-                            )}
-                    }else{
+                            )}}else{
                         note.subtitle = subtitle
                     }
 
                     //Go back if the requirements are met
-                    if(title.length > 3 && subtitle.length < 120){
+                    if(title.length in 4..49 && subtitle.length < 120){
                         navController.popBackStack()
                     }
-
-                }
             }) {
-                Text("Save changes to the note")
+                Text("Save changes")
             }
         }
     }
